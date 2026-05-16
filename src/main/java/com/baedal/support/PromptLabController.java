@@ -31,8 +31,12 @@ public class PromptLabController {
     public PromptLabResult experiment(@RequestBody PromptLabRequest req) {
         var results = new java.util.ArrayList<SupportResponse>();
 
+        var systemPrompt = (req.systemPrompt() == null || req.systemPrompt().isBlank())
+                ? BaedalPrompt.SYSTEM_PROMPT
+                : req.systemPrompt();
+
         var client = builder
-                .defaultSystem(BaedalPrompt.SYSTEM_PROMPT)
+                .defaultSystem(systemPrompt)
                 .build();
 
         for (int i = 0; i < req.repeat(); i++) {
@@ -44,8 +48,6 @@ public class PromptLabController {
                     .entity(SupportResponse.class);
             results.add(response);
         }
-
-        results.stream().forEach(System.out::println);
 
         return PromptLabResult.from(results);
     }

@@ -34,9 +34,9 @@ public class PerformanceLoggingAdvisor implements CallAdvisor {
     // 구현 후 SupportController에서 .defaultAdvisors(performanceAdvisor)로 등록하라.
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         ChatClientResponse response = chain.nextCall(request);
-        long elapsed = System.currentTimeMillis() - start;
+        long elapsed = System.nanoTime() - start;
 
         var chatResponse = response.chatResponse();
         if (chatResponse != null && chatResponse.getMetadata() != null
