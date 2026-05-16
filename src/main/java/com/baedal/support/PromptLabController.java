@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 public class PromptLabController {
 
     private final ChatClient.Builder builder;
+    private final PerformanceLoggingAdvisor performanceAdvisor;
 
     // TODO [2단계]: 프롬프트 정량 비교 실험 엔드포인트를 구현하라.
     //
@@ -28,7 +29,25 @@ public class PromptLabController {
     // - categoryConsistency 수치를 비교하여 README에 기록
     @PostMapping
     public PromptLabResult experiment(@RequestBody PromptLabRequest req) {
-        throw new UnsupportedOperationException("TODO: 구현하세요");
+        var results = new java.util.ArrayList<SupportResponse>();
+
+        var client = builder
+                .defaultSystem(BaedalPrompt.SYSTEM_PROMPT)
+                .build();
+
+        for (int i = 0; i < req.repeat(); i++) {
+            var response = client
+                    .prompt()
+                    .advisors(performanceAdvisor)
+                    .user(req.message())
+                    .call()
+                    .entity(SupportResponse.class);
+            results.add(response);
+        }
+
+        results.stream().forEach(System.out::println);
+
+        return PromptLabResult.from(results);
     }
 
     public record PromptLabRequest(
