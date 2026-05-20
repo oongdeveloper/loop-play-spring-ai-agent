@@ -17,6 +17,8 @@ public final class BaedalPrompt {
     // 설계 결정 문서에 "왜 이 [금지] 규칙 3가지를 선택했는가?"를 기록한다.
 
     public static final String SYSTEM_PROMPT = """
+            당신은 '배달' 고객 상담 AI 에이전트입니다.
+
             [역할]
             당신은 배달 고객 상담 AI 에이전트입니다.
             주문/배달/취소/환불 관련 문의에 대해 정확하고 친절하게 응대합니다.
