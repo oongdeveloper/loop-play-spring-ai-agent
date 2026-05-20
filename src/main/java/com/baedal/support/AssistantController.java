@@ -1,6 +1,7 @@
 package com.baedal.support;
 
 import com.baedal.support.tool.OrderTools;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,8 @@ public class AssistantController {
     private final PerformanceLoggingAdvisor performanceAdvisor;
     private final OrderTools orderTools;
 
+    private ChatClient chatClient;
+
     // TODO [1단계-4] 이 엔드포인트에 OrderTools를 등록하라.
     //
     // 요구사항:
@@ -31,8 +34,21 @@ public class AssistantController {
     //
     // 힌트: .defaultTools(...) vs .tools(...) — 전자는 이 컨트롤러의 모든 호출에 적용,
     //      후자는 개별 호출에만 적용된다. 여기서는 defaultTools()가 맞다.
+
+    @PostConstruct
+    public void init() {
+        this.chatClient = builder
+                .defaultSystem(BaedalPrompt.SYSTEM_PROMPT)
+                .defaultAdvisors(performanceAdvisor)
+                .defaultTools(orderTools)
+                .build();
+    }
+
     @PostMapping
     public String ask(@RequestBody ChatRequest req) {
-        throw new UnsupportedOperationException("TODO [1단계-4]: AssistantController 구현");
+        return chatClient.prompt()
+                .user(req.message())
+                .call()
+                .content();
     }
 }

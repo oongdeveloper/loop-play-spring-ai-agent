@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
+import static com.baedal.support.tool.CancelOrderResult.*;
+
 /**
  * 배달 상담 에이전트가 사용할 Tool 묶음.
  * <p>
@@ -44,8 +46,17 @@ public class OrderTools {
     // - orderService.findById(orderId) 로 조회하여, 존재하면 toDetailView()로 변환, 없으면 null.
     //
     // 힌트: toDetailView(Order) 변환기는 아래에 이미 준비되어 있다.
-    public OrderDetailView getOrderDetail(String orderId) {
-        throw new UnsupportedOperationException("TODO [1단계-1]: getOrderDetail 구현");
+
+    // @Test 어떤 방식으로 변경해서 테스트를 해봐야 할지 고민
+    // 1. 입력 형식이 있다고 차이가 있는가?
+    // 2. 실패 시 반환값이 없다고 차이가 있는가?
+    @Tool(description = "주문ID 로 특정 주문의 상세 정보를 조회한다. 고객이 주문현황(메뉴/금액/상태 등)을 물을 때 사용한다. 주문이 존재하지 않으면 null 을 반환한다.")
+    public OrderDetailView getOrderDetail(
+            @ToolParam(description="조회할 주문ID") String orderId
+    ) {
+        return orderService.findById(orderId)
+                .map(this::toDetailView)
+                .orElse(null); // @Test null 로 반환하면 LLM 이 어떻게 처리하는지 테스트
     }
 
     // TODO [1단계-2] getDeliveryStatus Tool을 구현하라.
@@ -57,8 +68,19 @@ public class OrderTools {
     // - 존재하면 toDeliveryView()로 변환, 없으면 null 반환.
     //
     // 힌트: toDeliveryView(Order) 변환기는 아래에 이미 준비되어 있다.
-    public DeliveryStatusView getDeliveryStatus(String orderId) {
-        throw new UnsupportedOperationException("TODO [1단계-2]: getDeliveryStatus 구현");
+
+    // @Test 1. 자동으로 주문상태를 확인하는가? 여러 번 테스트 (주문 상태가 불확실한 경우 먼저 getOrder로 상태를 확인한 후 호출하라. 추가해서 다시 테스트)
+    // 2. LLM 이 먼저 호출해보고 이 메소드를 호출하도록? 혹은 개발자가 직접 코드 상에 명시?
+    // 		배달 상태 조회는 항상 주문 정보가 필요하다. 그렇다면 LLM 에게 호출을 맡길 필요가 있나?
+    @Tool(description = "주문ID 로 특정 주문의 배달 정보를 조회한다. 고객이 배달현황, 라이더 위치, 도착 예정 시간을 물을 때 사용한다. " +
+                        "배달 중(DELIVERING)인 주문에서만 라이더 위치가 유효하다. 주문이 존재하지 않으면 null 을 반환한다.")
+    public DeliveryStatusView getDeliveryStatus(
+            @ToolParam(description="조회할 주문ID") String orderId
+    ) {
+        return orderService.findById(orderId)
+                // .filter(order -> order.getStatus() == OrderStatus.DELIVERING)
+                .map(this::toDeliveryView)
+                .orElse(null);
     }
 
     // TODO [1단계-3] + [2단계] cancelOrder Tool을 구현하라.
@@ -82,8 +104,30 @@ public class OrderTools {
     // - 같은 orderId로 cancelOrder를 연속 2회 호출했을 때 1번째/2번째 응답 비교.
     // - 멱등성 분기(이미 CANCELED 처리)를 "통째로 제거"한 버전을 한 번 돌려보고,
     //   LLM의 응답이 어떻게 달라지는지 관찰한다.
-    public CancelOrderResult cancelOrder(String orderId, String reason) {
-        throw new UnsupportedOperationException("TODO [1단계-3]: cancelOrder 구현");
+    // @Test 1. 취소 가능 조건 / 불가 조건이 모두 있을 필요가 있나? (여러 번 테스트 해서 확인)
+    // 2. 위 과제 확인
+    @Tool(description = "주문ID 로 특정 주문을 취소한다. 주문 상태가 CREATED 또는 ACCEPTED인 주문에서만 취소가 가능하다."
+    public CancelOrderResult cancelOrder(
+            @ToolParam(description="조회할 주문ID") String orderId,
+            String reason
+    ) {
+        Order order = orderService.findById(orderId).orElse(null);
+
+        if (order == null) {
+            return new CancelOrderResult(orderId, Outcome.NOT_FOUND, "존재하지 않는 주문입니다.");
+        }
+
+        if (order.getStatus() == OrderStatus.CANCELED) {
+            return new CancelOrderResult(orderId, Outcome.ALREADY_CANCELED, "이미 취소된 주문입니다.");
+        }
+
+        if (!order.isCancelable()) {
+            return new CancelOrderResult(orderId, Outcome.NOT_CANCELABLE, "취소할 수 없는 주문입니다. 현재 상태: " + order.getStatus());
+        }
+
+        order.cancel(reason, LocalDateTime.now());
+//        orderService.save(order); // @Test ConcurrentHashMap 에서 갖고 나온거니까 자동으로 적용되나?
+        return new CancelOrderResult(orderId, Outcome.CANCELED, "주문이 취소되었습니다.");
     }
 
     // ------- 변환기 (참고용 — 수정할 필요 없음) -------
