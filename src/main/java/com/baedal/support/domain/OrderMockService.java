@@ -118,7 +118,7 @@ public class OrderMockService {
         //
         // 각 주문의 메뉴/매장명/주소는 자유롭게 정하되, 한국어 배달 톤을 유지하라.
         save(new Order(
-                "2024-1238",
+                "2024-1239",
                 "가메스시 강남점",
                 List.of(
                         new OrderItem("연어 초밥 세트", 1, 22_000),

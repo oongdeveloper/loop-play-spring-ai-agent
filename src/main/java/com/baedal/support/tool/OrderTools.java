@@ -50,9 +50,10 @@ public class OrderTools {
     // @Test 어떤 방식으로 변경해서 테스트를 해봐야 할지 고민
     // 1. 입력 형식이 있다고 차이가 있는가?
     // 2. 실패 시 반환값이 없다고 차이가 있는가?
-    @Tool(description = "주문ID 로 특정 주문의 상세 정보를 조회한다. 고객이 주문현황(메뉴/금액/상태 등)을 물을 때 사용한다. 주문이 존재하지 않으면 null 을 반환한다.")
+//    @Tool(description = "주문ID 로 특정 주문의 상세 정보를 조회한다. 고객이 주문현황(메뉴/금액/상태 등)을 물을 때 사용한다. 주문이 존재하지 않으면 null 을 반환한다.")
+    @Tool(description = "주문ID 로 특정 주문의 상세 정보를 조회한다. 고객이 주문 메뉴, 금액, 상태 등 주문 상세 내역을 물을 때 반드시 이 Tool 을 호출한다. 주문이 존재하지 않으면 null 을 반환한다.")
     public OrderDetailView getOrderDetail(
-            @ToolParam(description="조회할 주문ID") String orderId
+            @ToolParam(description="조회할 주문ID. 'YYYY-XXXX' 형식의 주문번호. 고객이 언급한 주문번호를 그대로 사용한다.") String orderId
     ) {
         return orderService.findById(orderId)
                 .map(this::toDetailView)
@@ -74,8 +75,9 @@ public class OrderTools {
     // 		배달 상태 조회는 항상 주문 정보가 필요하다. 그렇다면 LLM 에게 호출을 맡길 필요가 있나?
     @Tool(description = "주문ID 로 특정 주문의 배달 정보를 조회한다. 고객이 배달현황, 라이더 위치, 도착 예정 시간을 물을 때 사용한다. " +
                         "배달 중(DELIVERING)인 주문에서만 라이더 위치가 유효하다. 주문이 존재하지 않으면 null 을 반환한다.")
+//    @Tool(description = "배달 정보 조회")
     public DeliveryStatusView getDeliveryStatus(
-            @ToolParam(description="조회할 주문ID") String orderId
+            @ToolParam(description="조회할 주문ID. 'YYYY-XXXX' 형식의 주문번호. 고객이 언급한 주문번호를 그대로 사용한다.") String orderId
     ) {
         return orderService.findById(orderId)
                 // .filter(order -> order.getStatus() == OrderStatus.DELIVERING)
@@ -106,11 +108,13 @@ public class OrderTools {
     //   LLM의 응답이 어떻게 달라지는지 관찰한다.
     // @Test 1. 취소 가능 조건 / 불가 조건이 모두 있을 필요가 있나? (여러 번 테스트 해서 확인)
     // 2. 위 과제 확인
-    @Tool(description = "주문ID 로 특정 주문을 취소한다. 주문 상태가 CREATED 또는 ACCEPTED인 주문에서만 취소가 가능하다."
+    @Tool(description = "고객이 주문 취소를 요청하면 반드시 이 Tool 을 호출한다. 주문 번호가 있다면 주문 상태를 먼저 확인하지 않고, 바로 이 cancelOrder 를 호출한다. " +
+                        "주문ID 로 특정 주문을 취소한다. 주문 상태가 CREATED 또는 ACCEPTED인 주문에서만 취소가 가능하다.")
     public CancelOrderResult cancelOrder(
-            @ToolParam(description="조회할 주문ID") String orderId,
-            String reason
+            @ToolParam(description="조회할 주문ID. 'YYYY-XXXX' 형식의 주문번호. 고객이 언급한 주문번호를 그대로 사용한다.") String orderId,
+            @ToolParam(description="취소 이유. 고객이 언급한 취소사유를 그대로 사용한다. 명시적인 사유가 없으면 '고객 요청'으로 입력한다.", required = false) String reason
     ) {
+        log.info("orderId : {}, reason : {}", orderId, reason);
         Order order = orderService.findById(orderId).orElse(null);
 
         if (order == null) {

@@ -38,7 +38,7 @@ public class AssistantController {
     @PostConstruct
     public void init() {
         this.chatClient = builder
-                .defaultSystem(BaedalPrompt.SYSTEM_PROMPT)
+                .defaultSystem(BaedalPrompt.ASSISTANT_PROMPT)
                 .defaultAdvisors(performanceAdvisor)
                 .defaultTools(orderTools)
                 .build();
