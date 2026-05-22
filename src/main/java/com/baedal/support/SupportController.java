@@ -44,16 +44,6 @@ public class SupportController {
 
     @PostMapping
     public SupportResponse triage(@RequestBody ChatRequest req) {
-        // round1 소스
-        /*return builder
-                .defaultSystem(BaedalPrompt.SYSTEM_PROMPT)
-                .build()
-                .prompt()
-                .advisors(performanceAdvisor)
-                .user(req.message())
-                .call()
-                .entity(SupportResponse.class);*/
-
         return chatClient
                 .prompt()
                 .user(req.message())

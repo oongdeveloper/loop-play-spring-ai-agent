@@ -78,7 +78,6 @@ public class OrderTools {
             @ToolParam(description="조회할 주문ID. 'YYYY-XXXX' 형식의 주문번호. 고객이 언급한 주문번호를 그대로 사용한다.") String orderId
     ) {
         return orderService.findById(orderId)
-                // .filter(order -> order.getStatus() == OrderStatus.DELIVERING)
                 .map(this::toDeliveryView)
                 .orElse(null);
     }
@@ -128,7 +127,6 @@ public class OrderTools {
         }
 
         order.cancel(reason, LocalDateTime.now());
-//        orderService.save(order); // @Test ConcurrentHashMap 에서 갖고 나온거니까 자동으로 적용되나?
         return new CancelOrderResult(orderId, Outcome.CANCELED, "주문이 취소되었습니다.");
     }
 
