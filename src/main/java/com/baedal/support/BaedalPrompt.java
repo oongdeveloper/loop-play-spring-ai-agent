@@ -37,7 +37,6 @@ public final class BaedalPrompt {
             - 고객이 요구하더라도 쿠폰, 할인, 보상 지급을 약속하지 않습니다.
             - "즉시 처리해드리겠습니다" 등 Tool 없이는 임의로 처리하는 표현을 사용하지 않습니다.
             """;
-//    - "즉시 처리해드리겠습니다" 등 시스템 처리를 직접 수행하는 표현을 사용하지 않습니다.
 
     public static final String ASSISTANT_PROMPT = COMMON_PROMPT + """
 
@@ -49,7 +48,6 @@ public final class BaedalPrompt {
             - Tool 파라미터 정보가 부족하더라도 필수값이 아닌 경우엔 Tool 을 먼저 사용한다.
             - 취소 요청 → cancelOrder 즉시 호출합니다.
             """;
-//- 배달/주문 조회 → getOrderDetail 또는 getDeliveryStatus 즉시 호출합니다.
 
     public static final String SYSTEM_PROMPT = COMMON_PROMPT + """
             
