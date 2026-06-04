@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 import static com.baedal.support.tool.CancelOrderResult.*;
-
 /**
  * 배달 상담 에이전트가 사용할 Tool 묶음.
  * <p>
@@ -77,8 +76,11 @@ public class OrderTools {
     public DeliveryStatusView getDeliveryStatus(
             @ToolParam(description="조회할 주문ID. 'YYYY-XXXX' 형식의 주문번호. 고객이 언급한 주문번호를 그대로 사용한다.") String orderId
     ) {
-        return orderService.findById(orderId);
-        // .filter(order -> order.getStatus() == OrderStatus.DELIVERING)
+
+        return orderService.findById(orderId)
+                .map(this::toDeliveryView)
+                // .filter(order -> order.getStatus() == OrderStatus.DELIVERING)
+                .orElse(null);
     }
     // TODO [1단계-3] + [2단계] cancelOrder Tool을 구현하라.
     //
