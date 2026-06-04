@@ -4,12 +4,17 @@ import com.baedal.support.tool.OrderTools;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 1주차에서 만든 Structured Output 엔드포인트.
- * 2주차에는 여기에도 OrderTools를 등록하여 Tool Calling과 Structured Output이
- * 함께 동작할 수 있는지 직접 확인한다.
+ * Structured Output + Tool Calling + Chat Memory 통합 엔드포인트.
+ *
+ * <p>3주차 변경점 (숙제에서 직접 구현): Memory Advisor 추가 + X-Session-Id 헤더 처리.
+ * Triage 용도에도 Memory를 연결해 두면 "같은 세션에서 반복 분류할 때 맥락이 유지"된다.
+ *
+ * <p>구현 방법은 {@link AssistantController}와 동일하다. 거기서 배운 패턴을 여기에도 적용하라.
  */
 @RestController
 @RequiredArgsConstructor
@@ -18,15 +23,17 @@ public class SupportController {
 
     private final ChatClient.Builder builder;
     private final PerformanceLoggingAdvisor performanceAdvisor;
+    private final MessageChatMemoryAdvisor memoryAdvisor; // 3주차에서 추가
     private final OrderTools orderTools;
 
     private ChatClient chatClient;
 
     // TODO [1단계-5] 이 엔드포인트에도 OrderTools를 등록하라.
     //
-    // 요구사항:
-    // - 1주차 구조 유지: defaultSystem + defaultAdvisors + .entity(SupportResponse.class).
-    // - defaultTools(orderTools) 한 줄을 추가한다.
+    // 요구사항 (AssistantController와 동일):
+    //   1) @RequestHeader(value = "X-Session-Id", defaultValue = "default") String sessionId
+    //   2) .defaultAdvisors(memoryAdvisor, performanceAdvisor)
+    //   3) .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
     //
     // 관찰 과제 (README에 기록):
     // - /api/v1/assistant(자연어) 와 /api/v1/support(JSON)의 입력 토큰 수 차이는?

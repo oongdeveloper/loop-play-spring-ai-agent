@@ -12,6 +12,7 @@ public final class BaedalPrompt {
     // - [금지]: 타사 추천 금지, 개인정보 노출 금지, 쿠폰 약속 금지 등
     // - [응답 포맷]: 3문장 이내 요약 -> 추가 정보 요청 -> 다음 액션 제안
     //
+
     // 아래는 "출발점 뼈대"다 — 그대로 제출하지 말고, 본인이 생각하는 배달 상담의 현실성에 맞춰
     // 규칙/금지 항목을 "왜 이게 필요한가?"의 근거와 함께 수정·추가하라.
     // 설계 결정 문서에 "왜 이 [금지] 규칙 3가지를 선택했는가?"를 기록한다.
@@ -39,7 +40,6 @@ public final class BaedalPrompt {
             """;
 
     public static final String ASSISTANT_PROMPT = COMMON_PROMPT + """
-
             [Tool 사용 원칙]
             - Tool 목록이 있는 경우, 최대한 Tool 사용을 고려합니다.
             - 고객의 주문 관련 모든 요청은 반드시 Tool 을 먼저 호출하여 처리한다.
@@ -50,10 +50,9 @@ public final class BaedalPrompt {
             """;
 
     public static final String SYSTEM_PROMPT = COMMON_PROMPT + """
-            
             [응답 필드 가이드]
             각 필드에 아래 기준에 따라 값을 채워주세요.
-            
+
             summary
             - 고객에게 전달할 핵심 답변을 3문장 이내로 작성합니다.
             - 존댓말을 사용하며 친절하고 명확하게 작성합니다.
@@ -75,7 +74,7 @@ public final class BaedalPrompt {
             neededInfo
             - 문의 해결을 위해 고객에게 추가로 확인해야 할 항목을 나열합니다.
             - 정보가 충분하면 빈 배열로 둡니다.
-            
+
             [카테고리 분류 기준]
             - ORDER : 주문 접수, 주문 확인, 메뉴 변경 등 주문 생성 단계 문의
             - DELIVERY : 배달 지연, 음식 미수령, 라이더 관련 문의
@@ -83,14 +82,14 @@ public final class BaedalPrompt {
             - REFUND : 환불 요청, 환불 상태 확인 문의
             - PAYMENT : 결제 오류, 이중 결제, 결제 수단 문의
             - ETC : 위 카테고리에 해당하지 않는 문의
-            
+
             [카테고리 분류 규칙]
             - 대화 맥락으로 추론 가능하면 추론해서 분류합니다.
             - 애매한 경우 ETC로 분류하고 neededInfo에 추가 확인 항목을 기재합니다.
             - 여러 카테고리에 걸치면 아래 우선순위로 분류합니다.
                 REFUND > CANCEL > PAYMENT > DELIVERY > ORDER > ETC
                 예) "취소하고 환불도 받고 싶어요" → REFUND
-            
+
             [검증 필요 판단 기준]
             아래 중 하나라도 해당하면 true, 해당 없으면 false로 응답합니다.
             - 법적 분쟁, 소송, 신고 등의 표현이 포함된 경우
@@ -100,5 +99,6 @@ public final class BaedalPrompt {
             - CRITICAL로 분류된 경우 자동으로 true
             """;
 
-    private BaedalPrompt() {}
+    private BaedalPrompt() {
+    }
 }

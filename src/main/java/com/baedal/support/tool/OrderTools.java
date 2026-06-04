@@ -21,8 +21,8 @@ import static com.baedal.support.tool.CancelOrderResult.*;
  *     <li>@Tool의 {@code description}은 LLM이 읽는 "API 문서"다. 한국어로 명확히 작성한다.</li>
  *     <li>각 Tool은 실패 상황을 예외가 아닌 "결과 값"으로 표현한다.
  *         예외를 던지면 LLM이 Fallback할 기회를 잃는다.</li>
- *     <li>{@link #cancelOrder(String, String)}는 <b>멱등(idempotent)</b>하게 설계한다.
- *         이미 취소된 주문을 다시 취소 요청해도 동일한 성공 응답을 돌려준다.</li>
+ *     <li>{@link #cancelOrder(String, String)}는 <b>멱등(idempotent)</b>하다.
+ *         이미 취소된 주문을 다시 취소 요청해도 동일한 성공 응답을 준다.</li>
  * </ul>
  */
 @Slf4j
@@ -77,12 +77,9 @@ public class OrderTools {
     public DeliveryStatusView getDeliveryStatus(
             @ToolParam(description="조회할 주문ID. 'YYYY-XXXX' 형식의 주문번호. 고객이 언급한 주문번호를 그대로 사용한다.") String orderId
     ) {
-        return orderService.findById(orderId)
-                // .filter(order -> order.getStatus() == OrderStatus.DELIVERING)
-                .map(this::toDeliveryView)
-                .orElse(null);
+        return orderService.findById(orderId);
+        // .filter(order -> order.getStatus() == OrderStatus.DELIVERING)
     }
-
     // TODO [1단계-3] + [2단계] cancelOrder Tool을 구현하라.
     //
     // 1단계 요구사항:
@@ -132,7 +129,7 @@ public class OrderTools {
         return new CancelOrderResult(orderId, Outcome.CANCELED, "주문이 취소되었습니다.");
     }
 
-    // ------- 변환기 (참고용 — 수정할 필요 없음) -------
+    // ------- 변환기 -------
 
     private OrderDetailView toDetailView(Order order) {
         var lines = order.items().stream()
