@@ -85,15 +85,6 @@ public class KnowledgeLoader implements ApplicationRunner {
            loaded++;
            log.info("[KnowledgeLoader] 적재 완료 — id={} / 청크={}개 / 카테고리={}",
                         faq.id(), chunks.size(), faq.category());
-            //
-            // 왜 metadata에 faqId/title/category를 넣는가:
-            //   - 중복 적재 방지: 아래 alreadyLoaded() 가 filterExpression으로 faqId를 검사한다.
-            //   - 검색 후 출처 표기: metadata.title로 "어떤 정책 문서를 인용했는지" 로그에 찍을 수 있다.
-            //   - 카테고리 필터: 필요시 "환불 카테고리 안에서만 검색" 같은 필터를 쓸 수 있다.
-            //
-            // 설계 결정 질문 (README):
-            //   - 왜 tokenTextSplitter.apply()로 쪼개는가? 원본 Document 한 개로 넣으면 뭐가 달라지는가?
-            //   - vectorStore.add(chunks)는 내부적으로 무엇을 하는가? (힌트: EmbeddingModel 호출)
         }
 
         log.info("[KnowledgeLoader] RAG 시드 완료 — 신규 {}건 / 스킵 {}건 / 총 {}건",

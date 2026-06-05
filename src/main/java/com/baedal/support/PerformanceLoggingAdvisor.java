@@ -40,7 +40,7 @@ public class PerformanceLoggingAdvisor implements CallAdvisor {
 
         long start = System.nanoTime();
         ChatClientResponse response = chain.nextCall(request);
-        long elapsed = System.nanoTime() - start;
+        long elapsed = (System.nanoTime() - start) / 1_000_000;
         var chatResponse = response.chatResponse();
         if (chatResponse != null && chatResponse.getMetadata() != null
                 && chatResponse.getMetadata().getUsage() != null) {

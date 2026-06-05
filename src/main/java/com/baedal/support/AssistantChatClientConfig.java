@@ -30,20 +30,6 @@ public class AssistantChatClientConfig {
                                           PerformanceLoggingAdvisor performanceAdvisor,
                                           QuestionAnswerAdvisor ragAdvisor,
                                           OrderTools orderTools) {
-        // TODO [1단계-H] memoryAdvisor를 default advisor 체인에 추가하라.
-        //
-        // 요구사항:
-        //   - .defaultAdvisors(memoryAdvisor, performanceAdvisor) 순서로 등록
-        //     (memoryAdvisor가 먼저 실행되어 대화 이력을 주입한 뒤 performance가 측정)
-        //
-        // 왜 여기서 등록하는가:
-        //   - ChatClient는 빈으로 한 번만 조립되어 모든 세션이 공유한다.
-        //   - 세션별 conversationId는 컨트롤러에서 호출 단위로 .advisors(a -> ...)로 주입한다.
-//        return builder
-//                .defaultSystem(BaedalPrompt.SYSTEM_PROMPT)
-//                .defaultAdvisors(memoryAdvisor, performanceAdvisor) // TODO: memoryAdvisor를 첫 번째로 추가
-//                .defaultTools(orderTools)
-//                .build();
         return builder
                 .defaultSystem(BaedalPrompt.ASSISTANT_PROMPT)
                 .defaultAdvisors(memoryAdvisor, ragAdvisor, performanceAdvisor)
