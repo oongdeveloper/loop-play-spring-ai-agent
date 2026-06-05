@@ -72,21 +72,19 @@ public class KnowledgeLoader implements ApplicationRunner {
             }
 
             // TODO [1단계-E] FaqDocument → Spring AI Document 변환 + VectorStore 적재.
-            //
-            // 요구사항:
-            //   1) Document doc = new Document(
-            //          faq.id(),
-            //          faq.content(),
-            //          Map.of(
-            //              "faqId",    faq.id(),
-            //              "title",    faq.title(),
-            //              "category", faq.category()
-            //          ));
-            //   2) List<Document> chunks = tokenTextSplitter.apply(List.of(doc));
-            //   3) vectorStore.add(chunks);
-            //   4) loaded++;
-            //   5) log.info("[KnowledgeLoader] 적재 완료 — id={} / 청크={}개 / 카테고리={}",
-            //                faq.id(), chunks.size(), faq.category());
+           Document doc = new Document(
+                  faq.id(),
+                  faq.content(),
+                  Map.of(
+                      "faqId",    faq.id(),
+                      "title",    faq.title(),
+                      "category", faq.category()
+                  ));
+           List<Document> chunks = tokenTextSplitter.apply(List.of(doc));
+           vectorStore.add(chunks);
+           loaded++;
+           log.info("[KnowledgeLoader] 적재 완료 — id={} / 청크={}개 / 카테고리={}",
+                        faq.id(), chunks.size(), faq.category());
             //
             // 왜 metadata에 faqId/title/category를 넣는가:
             //   - 중복 적재 방지: 아래 alreadyLoaded() 가 filterExpression으로 faqId를 검사한다.
@@ -152,13 +150,13 @@ public class KnowledgeLoader implements ApplicationRunner {
         // TODO [1단계-F] 중복 적재 방지 로직을 구현하라.
         //
         // 요구사항:
-        //   SearchRequest req = SearchRequest.builder()
-        //           .query("정책")                            // 아무 쿼리나 OK — filter로만 걸러짐
-        //           .topK(1)
-        //           .similarityThresholdAll()                 // 유사도 임계값 없음
-        //           .filterExpression("faqId == '" + faqId + "'")
-        //           .build();
-        //   return !vectorStore.similaritySearch(req).isEmpty();
+       SearchRequest req = SearchRequest.builder()
+               .query("정책")                            // 아무 쿼리나 OK — filter로만 걸러짐
+               .topK(1)
+               .similarityThresholdAll()                 // 유사도 임계값 없음
+               .filterExpression("faqId == '" + faqId + "'")
+               .build();
+       return !vectorStore.similaritySearch(req).isEmpty();
         //
         // 왜 이 방법을 쓰는가:
         //   - Spring AI의 VectorStore 인터페이스에는 "id로 한 건 조회"가 없다.
@@ -170,6 +168,6 @@ public class KnowledgeLoader implements ApplicationRunner {
         //
         // 힌트: 지금은 일단 false를 반환해 빌드가 되게만 해두고, 위 코드를 채워라.
         //       false로 두면 재기동마다 동일 문서가 또 쌓이는 것을 관찰하게 된다(실패 관찰).
-        return false;
+        //        return false;
     }
 }

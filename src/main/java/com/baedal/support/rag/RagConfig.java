@@ -79,7 +79,13 @@ public class RagConfig {
     @Bean
     public TokenTextSplitter tokenTextSplitter() {
         // TODO: TokenTextSplitter 인스턴스 반환
-        return null;
+        return new TokenTextSplitter(
+                800,    // chunkSize: 목표 청크 크기(토큰)
+                350,    // minChunkSizeChars: 이보다 작으면 앞 청크에 병합
+                5,      // minChunkLengthToEmbed: 이보다 짧으면 임베딩 제외
+                10_000, // maxNumChunks
+                true    // keepSeparator (문단 구분자 유지)
+        );
     }
 
     // TODO [1단계-D] QuestionAnswerAdvisor Bean을 등록하라.
@@ -107,6 +113,14 @@ public class RagConfig {
     @Bean
     public QuestionAnswerAdvisor questionAnswerAdvisor(VectorStore vectorStore) {
         // TODO: SearchRequest + QuestionAnswerAdvisor 빌드해 반환 (order=20)
-        return null;
+        SearchRequest searchRequest = SearchRequest.builder()
+                .topK(4)
+                .similarityThreshold(0.5)
+                .build();
+
+        return QuestionAnswerAdvisor.builder(vectorStore)
+                .searchRequest(searchRequest)
+                .order(20)  // Memory(10) 뒤, Performance(100) 앞
+                .build();
     }
 }

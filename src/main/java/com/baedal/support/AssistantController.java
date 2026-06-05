@@ -58,7 +58,7 @@ import org.springframework.web.bind.annotation.*;
 public class AssistantController {
 
 //    private final ChatClient assistantChatClient;
-    private ChatClient chatClient;
+    private final ChatClient chatClient;
 
 //    private final ChatClient.Builder builder;
 //    private final PerformanceLoggingAdvisor performanceAdvisor;
@@ -81,18 +81,18 @@ public class AssistantController {
     //     (힌트: "아까 그 주문 환불 돼요?" 질문에서 RAG가 먼저 실행되면 "그 주문"이 뭐인지
     //            알 수 없어 아무 정책이나 검색하게 된다)
     //   - 실제로 반대 순서가 더 나은 상황은 존재하는가? (5주차 Guardrail과 연결해 생각해 보라)
-    public AssistantController(ChatClient.Builder builder,
-                               PerformanceLoggingAdvisor performanceAdvisor,
-                               MessageChatMemoryAdvisor memoryAdvisor,
-                               QuestionAnswerAdvisor ragAdvisor,
-                               OrderTools orderTools) {
-        this.chatClient = builder
-                .defaultSystem(BaedalPrompt.SYSTEM_PROMPT)
-                // TODO: memoryAdvisor 다음, performanceAdvisor 앞에 ragAdvisor를 추가하라.
-                .defaultAdvisors(memoryAdvisor, performanceAdvisor)
-                .defaultTools(orderTools)
-                .build();
-    }
+//    public AssistantController(ChatClient.Builder builder,
+//                               PerformanceLoggingAdvisor performanceAdvisor,
+//                               MessageChatMemoryAdvisor memoryAdvisor,
+//                               QuestionAnswerAdvisor ragAdvisor,
+//                               OrderTools orderTools) {
+//        this.chatClient = builder
+//                .defaultSystem(BaedalPrompt.ASSISTANT_PROMPT)
+//                // TODO: memoryAdvisor 다음, performanceAdvisor 앞에 ragAdvisor를 추가하라.
+//                .defaultAdvisors(memoryAdvisor, ragAdvisor, performanceAdvisor)
+//                .defaultTools(orderTools)
+//                .build();
+//    }
 
     // TODO [1단계-4] 이 엔드포인트에 OrderTools를 등록하라.
     //

@@ -22,11 +22,7 @@ spring:
         model: qwen2.5
         options:
           temperature: 0.3
-<<<<<<< HEAD
-logging:
-  level:
-    org.springframework.ai: DEBUG
-=======
+
       # 임베딩 모델을 Ollama로 통일한다.
       # 사용 전: ollama pull qwen3-embedding:0.6b
       embedding:
@@ -52,4 +48,3 @@ logging:
   level:
     org.springframework.ai: DEBUG
     com.baedal.support: DEBUG
->>>>>>> upstream/round4
