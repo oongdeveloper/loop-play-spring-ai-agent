@@ -11,6 +11,8 @@ import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvi
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * Structured Output + Tool Calling + Chat Memory + RAG + Guardrail 통합 엔드포인트.
  * <p>
@@ -36,6 +38,7 @@ public class SupportController {
 //                .build();
 //    }
 
+    private final ChatClient chatClient;
     private final ChatClient.Builder builder;
     private final PerformanceLoggingAdvisor performanceAdvisor;
     private final MessageChatMemoryAdvisor memoryAdvisor;
@@ -58,14 +61,32 @@ public class SupportController {
         //     - action:   "상담원 연결 진행"
         //     - nextSteps: List.of() 또는 ["상담원 응대 대기"]
 
-        // TODO [1단계-C] defaultAdvisors에 inputGuardrail / outputGuardrail을 추가하라.
-        //   권장 순서: inputGuardrail(5) → memoryAdvisor(10) → ragAdvisor(20)
-        //            → outputGuardrail(50) → performanceAdvisor(100)
-        return builder
-                .defaultSystem(BaedalPrompt.SYSTEM_PROMPT)
-                .defaultAdvisors(memoryAdvisor, ragAdvisor, performanceAdvisor)
-                .defaultTools(orderTools)
-                .build()
+        // 3단계 구현
+        HandoffDetector.HandoffDecision decision = handoffDetector.detect(req.message());
+        if (decision.handoff()) {
+            return new SupportResponse(
+                    decision.message(),
+                    SupportResponse.Category.ETC,
+                    SupportResponse.Urgency.HIGH,
+                    "상담원 연결 진행",
+                    SupportResponse.AffectedParty.PLATFORM,
+                    true,
+                    List.of("상담원 응대 대기")
+            );
+        }
+
+//        return builder
+//                .defaultSystem(BaedalPrompt.SYSTEM_PROMPT)
+//                .defaultAdvisors(inputGuardrail, memoryAdvisor, ragAdvisor, outputGuardrail, performanceAdvisor)
+//                .defaultTools(orderTools)
+//                .build()
+//                .prompt()
+//                .user(req.message())
+//                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
+//                .call()
+//                .entity(SupportResponse.class);
+
+        return chatClient
                 .prompt()
                 .user(req.message())
                 .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))

@@ -1,5 +1,6 @@
 package com.baedal.support;
 
+import com.baedal.support.guardrail.ForOutputGuardrailTestAdvisor;
 import com.baedal.support.guardrail.HandoffDetector;
 import com.baedal.support.guardrail.InputGuardrailAdvisor;
 import com.baedal.support.guardrail.OutputGuardrailAdvisor;
@@ -39,9 +40,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/assistant")
 public class AssistantController {
 
-//    private final ChatClient chatClient;
+    private final ChatClient chatClient;
 
-    private final ChatClient.Builder builder;
+//    private final ChatClient.Builder builder;
     private final PerformanceLoggingAdvisor performanceAdvisor;
     private final MessageChatMemoryAdvisor memoryAdvisor;
     private final QuestionAnswerAdvisor ragAdvisor;
@@ -61,22 +62,20 @@ public class AssistantController {
         //    handoffDetector.detect(req.message()) 결과가 handoff==true 면 즉시 decision.message()를 리턴하라.
         //    왜 LLM 호출 전에 하는지를 README 설계 결정 섹션에 서술하라.
 
+        // 3단계 구현
+        HandoffDetector.HandoffDecision decision = handoffDetector.detect(req.message());
+        if (decision.handoff()) {
+            return decision.message();
+        }
+
         // TODO [4단계-A] try/catch로 감싸서 LLM/Tool/VectorStore 예외 시 fallback(e)로 안전 응답을 돌려주라.
         //    스택트레이스는 절대 외부에 노출하지 않는다(log.error로 내부 로그에만 남김).
-        return builder
-                .defaultSystem(BaedalPrompt.SYSTEM_PROMPT)
-                // TODO [1단계-B] Advisor 체인에 inputGuardrail / outputGuardrail을 추가하라.
-                //   권장 순서: inputGuardrail(5) → memoryAdvisor(10) → ragAdvisor(20)
-                //            → outputGuardrail(50) → performanceAdvisor(100)
-                //   왜 inputGuardrail이 Memory보다 앞이고, outputGuardrail이 Performance보다 안쪽인지를
-                //   README 설계 결정 섹션에 서술하라.
-                .defaultAdvisors(memoryAdvisor, ragAdvisor, performanceAdvisor)
-                .defaultTools(orderTools)
-                .build()
+        return chatClient
                 .prompt()
                 .user(req.message())
                 // 이 호출에 한해 Memory가 사용할 conversationId를 지정한다.
                 .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
+                .advisors(new ForOutputGuardrailTestAdvisor(req.message()))
                 .call()
                 .content();
     }

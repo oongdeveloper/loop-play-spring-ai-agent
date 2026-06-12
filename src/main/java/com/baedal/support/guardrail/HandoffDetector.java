@@ -59,7 +59,30 @@ public class HandoffDetector {
      *   실제 동작 가능함을 보이라.
      */
     public HandoffDecision detect(String input) {
-        // TODO [3단계-A] 위 명세에 맞춰 우선순위대로 판별하고 적절한 HandoffDecision을 반환하라.
+        // 1) input이 null이거나 blank → HandoffDecision.none()
+        if (input == null || input.isBlank()) {
+            return HandoffDecision.none();
+        }
+
+        // 2) EXPLICIT_PATTERNS 매치 → handoff(EXPLICIT_REQUEST, "네, 바로 상담원에게 연결해 드릴게요. ...")
+        if (matchesAny(input, EXPLICIT_PATTERNS)) {
+            return HandoffDecision.handoff(HandoffReason.EXPLICIT_REQUEST,
+                    "네, 바로 상담원에게 연결해 드릴게요. 잠시만 기다려 주세요. 연결 번호: 1600-0987");
+        }
+
+        // 3) LEGAL_PATTERNS 매치 → handoff(LEGAL_ISSUE, "법적/민원 관련 사안은 전문 상담원이 ...")
+        if (matchesAny(input, LEGAL_PATTERNS)) {
+            return HandoffDecision.handoff(HandoffReason.LEGAL_ISSUE,
+                    "법적/민원 관련 사안은 전문 상담원이 직접 도와드립니다. 연결 번호: 1600-0987로 문의해 주세요.");
+        }
+
+        // 4) ANGER_PATTERNS 매치 → handoff(HIGH_EMOTION, "많이 불편하셨을 것 같아 ...")
+        if (matchesAny(input, ANGER_PATTERNS)) {
+            return HandoffDecision.handoff(HandoffReason.HIGH_EMOTION,
+                    "많이 불편하셨을 것 같아 진심으로 죄송합니다. 전문 상담원이 직접 도와드리겠습니다. 연결 번호: 1600-0987");
+        }
+
+        // 5) 어느 것도 아니면 none()
         return HandoffDecision.none();
     }
 

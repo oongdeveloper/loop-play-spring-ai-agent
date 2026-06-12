@@ -63,20 +63,40 @@ public class OutputGuardrailAdvisor implements CallAdvisor {
         return 50;
     }
 
-    /**
-     * TODO [2단계-A] 출력 검사 로직을 직접 구현하라.
-     *   1) chain.nextCall(request)로 LLM 응답을 받는다.
-     *   2) extractContent(response)로 텍스트를 꺼낸다. null/blank면 EMPTY_FALLBACK으로 replace.
-     *   3) LEAK_MARKERS 중 하나라도 응답에 포함되면 LEAK_FALLBACK으로 replace ("PROMPT_LEAK").
-     *   4) masker.containsSensitive(text)가 true면 masker.mask(text)로 replace ("SENSITIVE_MASKED").
-     *   5) 모두 문제 없으면 원본 response 그대로 반환.
-     *
-     *   replace(...) 헬퍼가 이미 제공된다. log.warn으로 사유를 남겨 감사가 가능하게 하라.
-     */
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
         // TODO [2단계-A] 위 명세에 맞춰 Output 검사/치환을 구현하고 아래 기본 체인 통과를 제거하라.
-        return chain.nextCall(request);
+
+        // 2단계 구현
+        // 1) chain.nextCall(request)로 LLM 응답을 받는다.
+        ChatClientResponse response = chain.nextCall(request);
+
+        // 2) extractContent(response)로 텍스트를 꺼낸다. null/blank면 EMPTY_FALLBACK으로 replace.
+        String text = extractContent(response);
+
+        log.info("여기 오는 건가요? {}", text);
+
+        if (text == null || text.isBlank()) {
+            log.warn("[OutputGuardrail] 응답 없음 — reason=EMPTY_RESPONSE");
+            return replace(response, request, EMPTY_FALLBACK, "EMPTY_RESPONSE");
+        }
+
+        // 3) LEAK_MARKERS 중 하나라도 응답에 포함되면 LEAK_FALLBACK으로 replace ("PROMPT_LEAK").
+        for (String marker : LEAK_MARKERS) {
+            if (text.contains(marker)) {
+                log.warn("[OutputGuardrail] 프롬프트 유출 탐지 — reason=PROMPT_LEAK | marker={}", marker);
+                return replace(response, request, LEAK_FALLBACK, "PROMPT_LEAK");
+            }
+        }
+
+        // 4) masker.containsSensitive(text)가 true면 masker.mask(text)로 replace ("SENSITIVE_MASKED").
+        if (masker.containsSensitive(text)) {
+            log.warn("[OutputGuardrail] 민감 정보 탐지 — reason=SENSITIVE_MASKED");
+            return replace(response, request, masker.mask(text), "SENSITIVE_MASKED");
+        }
+
+        // 5) 모두 문제 없으면 원본 response 그대로 반환.
+        return response;
     }
 
     private String extractContent(ChatClientResponse response) {

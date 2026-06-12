@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 public class InputGuardrailAdvisor implements CallAdvisor {
 
     /** 2000자 이상의 입력은 남용으로 간주. LLM 컨텍스트/토큰을 선제적으로 아낀다. */
-    private static final int MAX_INPUT_CHARS = 2000;
+    private static final int MAX_INPUT_CHARS = 1000;
 
     /**
      * Prompt Injection 및 역할 재정의 시도로 판단되는 패턴.
@@ -91,8 +91,25 @@ public class InputGuardrailAdvisor implements CallAdvisor {
      *   (예: "고객님, 저는 주문/배달/환불 관련 상담만 도와드릴 수 있어요.")
      */
     public GuardrailResult check(String input) {
-        // TODO [1단계-A] 위 명세에 맞춰 로직을 작성하고 아래 기본 allow를 제거하라.
-        return GuardrailResult.allow("TODO");
+        // 1) input이 null이거나 blank면 EMPTY_INPUT 사유로 block
+        if (input == null || input.isBlank()) {
+            return GuardrailResult.block("EMPTY_INPUT", "고객님, 메시지 내용을 입력해 주세요. 주문·배달·환불 관련 문의를 도와드릴게요.");
+        }
+
+        // 2) input.length() > MAX_INPUT_CHARS 이면 INPUT_TOO_LONG 사유로 block
+        if (input.length() > MAX_INPUT_CHARS) {
+            return GuardrailResult.block("INPUT_TOO_LONG", "고객님, 입력하신 내용이 너무 길어요. 2000자 이내로 요약해 주시면 빠르게 도와드릴게요!");
+        }
+
+        // 3) INJECTION_PATTERNS 중 하나라도 match되면 PROMPT_INJECTION 사유로 block
+        for (Pattern pattern : INJECTION_PATTERNS) {
+         if (pattern.matcher(input).find()) {
+             return GuardrailResult.block("PROMPT_INJECTION", "고객님, 저는 주문·배달·환불 관련 상담만 도와드릴 수 있어요. 다른 내용을 문의해 주시겠어요?");
+         }
+        }
+
+        // 4) 모두 통과하면 GuardrailResult.allow("OK") 반환
+        return GuardrailResult.allow("OK");
     }
 
     private String extractUserText(ChatClientRequest request) {
