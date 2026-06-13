@@ -59,7 +59,7 @@ public class RagConfig {
 
         return QuestionAnswerAdvisor.builder(vectorStore)
                 .searchRequest(searchRequest)
-                .order(20)  // Memory(10) 뒤, Performance(100) 앞
+                .order(5)  // Memory(10) 뒤, Performance(100) 앞
                 .build();
     }
 }
