@@ -44,6 +44,6 @@ public class ForOutputGuardrailTestAdvisor implements CallAdvisor {
 
     @Override
     public int getOrder() {
-        return 70;
+        return 150;
     }
 }
